@@ -1,5 +1,8 @@
 """Command Line Interface"""
 
+
+
+import shutil
 import tempfile
 import subprocess
 import os
@@ -22,7 +25,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 
 from prompt_toolkit.styles import style_from_pygments_cls, Style
 
-from pygments.lexers import BashLexer, CLexer, CppLexer, PythonLexer, HtmlLexer, JavascriptLexer
+from pygments.lexers import BashLexer, PythonLexer, HtmlLexer, JavascriptLexer, JavaLexer
 
 from pygments.styles import get_style_by_name
 
@@ -142,10 +145,8 @@ def Vim(file="new.py"):
             return None
         if file.endswith(".py"):
             return PygmentsLexer(PythonLexer)
-        elif file.endswith(".c"):
-            return PygmentsLexer(CLexer)
-        elif file.endswith(".cpp"):
-            return PygmentsLexer(CppLexer)
+        elif file.endswith(".java"):
+            return PygmentsLexer(JavaLexer)
         elif file.endswith(".sh"):
             return PygmentsLexer(BashLexer)
         elif file.endswith(".html"):
@@ -202,17 +203,27 @@ def Vim(file="new.py"):
                 if file.endswith(".py"):
                     cmd = f"python {tmp_filename}"
                     os.system(cmd)
-                elif file.endswith(".c"):
-                    exe = tmp_filename[:-2] + "_exe"
-                    os.system(f"gcc {tmp_filename} -o {exe}")
-                    os.system(f"./{exe}")
-                elif file.endswith(".cpp"):
-                    exe = tmp_filename[:-4] + "_exe"
-                    os.system(f"g++ {tmp_filename} -o {exe}")
-                    os.system(f"./{exe}")
+
+
                 elif file.endswith(".js"):
                     cmd = f"node {tmp_filename}"
                     os.system(cmd)
+
+                elif ext == ".java":
+                    match = re.search(r'public\s+class\s+(\w+)', editor.text)
+                    cls_name = match.group(1) if match else "Main"
+                    tmp_dir = tempfile.mkdtemp()
+                    tmp_java = os.path.join(tmp_dir, f"{cls_name}.java")
+                    with open(tmp_java, "w", encoding="utf-8") as f:
+                        f.write(editor.text)
+                    compile_proc = subprocess.run(["javac", tmp_java], capture_output=True, text=True)
+                    if compile_proc.returncode != 0:
+                        print(compile_proc.stderr)
+                    else:
+                        subprocess.run(["java", "-cp", tmp_dir, cls_name], text=True)
+                    
+                    shutil.rmtree(tmp_dir)
+
 
                 else:
                     os.system(f"python {tmp_filename}")
@@ -367,6 +378,10 @@ def Vim(file="new.py"):
             status_message["text"] = "Syntax highlighting disabled"
         clear_status_after_delay()
 
+    @kb.add("c-space")
+    def _(event):
+        event.app.current_buffer.insert_text("    ")
+
     @kb.add("c-q")
     def quit_app(event):
         event.app.exit()
@@ -488,3 +503,7 @@ while True:
         break
     except Exception:
         pass
+
+
+
+
