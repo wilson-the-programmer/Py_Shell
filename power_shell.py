@@ -25,7 +25,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 
 from prompt_toolkit.styles import style_from_pygments_cls, Style
 
-from pygments.lexers import BashLexer, PythonLexer, HtmlLexer, JavascriptLexer, JavaLexer
+from pygments.lexers import BashLexer, PythonLexer, HtmlLexer, JavascriptLexer, JavaLexer, KotlinLexer, DartLexer
 
 from pygments.styles import get_style_by_name
 
@@ -120,7 +120,7 @@ def run_program(file):
 def Vim(file="new.py"):
     if not os.path.exists(file):
         open(file, 'w').close()
-    
+
     file_buffers = {}
     open_files = [file]
     current_file_index = 0
@@ -153,6 +153,9 @@ def Vim(file="new.py"):
             return PygmentsLexer(HtmlLexer)
         elif file.endswith(".js"):
             return PygmentsLexer(JavascriptLexer)
+        elif file.endswith("dart"):
+            return PygmentsLexer(DartLexer)
+
 
         else:
             return PygmentsLexer(PythonLexer)
@@ -221,7 +224,7 @@ def Vim(file="new.py"):
                         print(compile_proc.stderr)
                     else:
                         subprocess.run(["java", "-cp", tmp_dir, cls_name], text=True)
-                    
+
                     shutil.rmtree(tmp_dir)
 
 
@@ -394,8 +397,8 @@ def Vim(file="new.py"):
 
     if file.endswith(".py"):
         style = style_from_pygments_cls(get_style_by_name("material"))
-    elif file.endswith(".c") or file.endswith(".cpp"):
-        style = style_from_pygments_cls(get_style_by_name("lightbulb"))
+    elif file.endswith(".java") or file.endswith(".dart"):
+        style = style_from_pygments_cls(get_style_by_name("zenburn"))
     elif file.endswith(".sh"):
         style = style_from_pygments_cls(get_style_by_name("coffee"))
     else:
@@ -414,8 +417,7 @@ def Vim(file="new.py"):
 
 fig = Figlet(font="doom")
 print(fig.renderText("PyShell"))
-sleep(0.8)
-print("\n🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲🔲\n")
+
 
 HOME_DIR = "/storage/emulated/0"
 history_file = os.path.expanduser("~/.my_prompt_history")
@@ -503,6 +505,7 @@ while True:
         break
     except Exception:
         pass
+
 
 
 
